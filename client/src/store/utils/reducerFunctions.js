@@ -13,12 +13,12 @@ export const addMessageToStore = (state, payload) => {
 
   return state.map((convo) => {
     if (convo.id === message.conversationId) {
-      const newMessages = JSON.parse(JSON.stringify(convo.messages));
+      const newMessages = [...convo.messages];
       convo.messages = [...newMessages, message];
       convo.latestMessageText = message.text;
-      return JSON.parse(JSON.stringify(convo));
+      return {...convo};
     } else {
-      return JSON.parse(JSON.stringify(convo));
+      return {...convo};
     }
   });
 };

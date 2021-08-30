@@ -73,16 +73,17 @@ router.get("/", async (req, res, next) => {
     }
 
     conversations.sort(
-      function(a, b) {
-        if (a['messages'][a['messages'].length-1]["createdAt"] > b['messages'][b['messages'].length-1]["createdAt"]){
-           return -1;
-        }else if (a['messages'][a['messages'].length-1]["createdAt"] < b['messages'][b['messages'].length-1]["createdAt"]){
-           return 1;
-        }else{
-           return 0;
+      function (a, b) {
+        if (a['messages'][a['messages'].length - 1]["createdAt"] > b['messages'][b['messages'].length - 1]["createdAt"]) {
+          return -1;
+        } else if (a['messages'][a['messages'].length - 1]["createdAt"] < b['messages'][b['messages'].length - 1]["createdAt"]) {
+          return 1;
+        } else {
+          return 0;
         }
       }
     )
+
     res.json(conversations);
   } catch (error) {
     next(error);

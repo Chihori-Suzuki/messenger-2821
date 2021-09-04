@@ -1,3 +1,13 @@
+const sortFunc = (a, b) => {
+  if (a['messages'][a['messages'].length - 1]["createdAt"] > b['messages'][b['messages'].length - 1]["createdAt"]) {
+    return -1;
+  } else if (a['messages'][a['messages'].length - 1]["createdAt"] < b['messages'][b['messages'].length - 1]["createdAt"]) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
 export const addMessageToStore = (state, payload) => {
   const { message, sender } = payload;
   // if sender isn't null, that means the message needs to be put in a brand new convo
@@ -11,15 +21,19 @@ export const addMessageToStore = (state, payload) => {
     return [newConvo, ...state];
   }
 
-  return state.map((convo) => {
+  const newState = state.map((convo) => {
     if (convo.id === message.conversationId) {
-      convo.messages.push(message);
-      convo.latestMessageText = message.text;
-      return convo;
+      const convoCopy = { ...convo };
+      const newMessages = [...convo.messages];
+      convoCopy.messages = [...newMessages, message];
+      convoCopy.latestMessageText = message.text;
+      return convoCopy;
     } else {
       return convo;
     }
   });
+  newState.sort(sortFunc);
+  return newState;
 };
 
 export const addOnlineUserToStore = (state, id) => {
@@ -67,14 +81,19 @@ export const addSearchedUsersToStore = (state, users) => {
 };
 
 export const addNewConvoToStore = (state, recipientId, message) => {
-  return state.map((convo) => {
+  const newState = state.map((convo) => {
     if (convo.otherUser.id === recipientId) {
-      convo.id = message.conversationId;
-      convo.messages.push(message);
-      convo.latestMessageText = message.text;
-      return convo;
+      const convoCopy = { ...convo };
+      const newMessages = [...convo.messages];
+      convoCopy.id = message.conversationId;
+      convoCopy.messages = [...newMessages, message];
+      convoCopy.latestMessageText = message.text;
+      return convoCopy;
     } else {
       return convo;
     }
   });
+  newState.sort(sortFunc);
+  
+  return newState;
 };

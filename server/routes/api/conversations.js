@@ -18,7 +18,7 @@ router.get("/", async (req, res, next) => {
           user2Id: userId,
         },
       },
-      attributes: ["id"],
+      attributes: ["id", "user1LastReadAt", "user2LastReadAt"],
       order: [[Message, "createdAt", "ASC"]],
       include: [
         { model: Message, order: ["createdAt", "DESC"] },
@@ -50,14 +50,17 @@ router.get("/", async (req, res, next) => {
     for (let i = 0; i < conversations.length; i++) {
       const convo = conversations[i];
       const convoJSON = convo.toJSON();
+      let lastReadAt = "";
 
       // set a property "otherUser" so that frontend will have easier access
       if (convoJSON.user1) {
         convoJSON.otherUser = convoJSON.user1;
         delete convoJSON.user1;
+        lastReadAt = convoJSON.user2LastReadAt;
       } else if (convoJSON.user2) {
         convoJSON.otherUser = convoJSON.user2;
         delete convoJSON.user2;
+        lastReadAt = convoJSON.user1LastReadAt;
       }
 
       // set property for online status of the other user
@@ -83,8 +86,43 @@ router.get("/", async (req, res, next) => {
         }
       }
     )
-
     res.json(conversations);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.patch("/lastRead", async (req, res, next) => {
+  const { id, senderId } = req.body;
+  const convo = await Conversation.findOne({ where: { id: id } });
+  const date = new Date();
+  const currentTime = new Date(date.getTime())
+
+  if (convo.user1Id === senderId) {
+    convo.user1LastReadAt = currentTime
+  } else {
+    convo.user2LastReadAt = currentTime
+  }
+  convo.save()
+});
+
+router.get("/lastRead", async (req, res, next) => {
+  const { convoId, userId } = req.query;
+  if (!convoId || !userId) return
+
+  try {
+    const convo = await Conversation.findOne({ where: { id: convoId } });
+    let lastReadAt = ""
+    if (convo.user1Id === parseInt(userId)) {
+      lastReadAt = convo.user1LastReadAt
+    } else {
+      lastReadAt = convo.user2LastReadAt
+    }
+
+    let resLastReadAt = new Date(lastReadAt)
+    resLastReadAt.setHours(resLastReadAt.getHours() - 7);
+
+    res.json(resLastReadAt)
   } catch (error) {
     next(error);
   }

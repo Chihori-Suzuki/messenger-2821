@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const { Conversation, Message } = require("../../db/models");
 const onlineUsers = require("../../onlineUsers");
+const { Op } = require('sequelize')
 
 // expects {recipientId, text, conversationId } in body (conversationId will be null if no conversation exists yet)
 router.post("/", async (req, res, next) => {
@@ -38,6 +39,19 @@ router.post("/", async (req, res, next) => {
       conversationId: conversation.id,
     });
     res.json({ message, sender });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get("/unreadMessages", async (req, res, next) => {
+  const { id, lastReadAt } = req.query;
+  try {
+    let localLastReadAt = new Date(lastReadAt)
+    localLastReadAt.setHours(localLastReadAt.getHours() + 7);
+
+    const unreadMessages = await Message.findAll({ where: { conversationId: id, createdAt: { [Op.gt]: localLastReadAt } } });
+    res.json(unreadMessages)
   } catch (error) {
     next(error);
   }

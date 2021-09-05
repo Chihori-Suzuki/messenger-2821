@@ -1,5 +1,6 @@
 import axios from "axios";
 import socket from "../../socket";
+import store from '../index'
 import {
   gotConversations,
   addConversation,
@@ -96,6 +97,7 @@ const sendMessage = (data, body) => {
 export const postMessage = (body) => async (dispatch) => {
   try {
     const data = await saveMessage(body);
+    const activeUserName = store.getState().activeConversation || null;
 
     if (!body.conversationId) {
       dispatch(addConversation(body.recipientId, data.message));
@@ -116,4 +118,18 @@ export const searchUsers = (searchTerm) => async (dispatch) => {
   } catch (error) {
     console.error(error);
   }
+};
+
+export const updateLastRead = async (body) => {
+  const { data } = await axios.patch("/api/conversations/lastRead", body);
+  return data;
+};
+export const getLastReadAt = async (params) => {
+  const { data } = await axios.get("/api/conversations/lastRead", { params: params });
+  return data;
+};
+
+export const getUnreadMessages = async (params) => {
+  const { data } = await axios.get("/api/messages/unreadMessages", { params: params });
+  return data;
 };

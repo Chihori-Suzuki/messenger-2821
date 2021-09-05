@@ -7,6 +7,7 @@ const useStyles = makeStyles((theme) => ({
     display: "flex",
     justifyContent: "space-between",
     marginLeft: 20,
+    marginRight: 20,
     flexGrow: 1,
   },
   username: {
@@ -18,12 +19,25 @@ const useStyles = makeStyles((theme) => ({
     color: "#9CADC8",
     letterSpacing: -0.17,
   },
+  bubble: {
+    background: "#3A8DFF",
+    borderRadius: "15px",
+    margin: "8px 0"
+  },
+  text: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#FFFFFF",
+    letterSpacing: -0.2,
+    padding: "2px 8px"
+  },
 }));
+
 
 const ChatContent = (props) => {
   const classes = useStyles();
 
-  const { conversation } = props;
+  const { conversation, unreadMessageCount } = props;
   const { latestMessageText, otherUser } = conversation;
 
   return (
@@ -36,6 +50,11 @@ const ChatContent = (props) => {
           {latestMessageText}
         </Typography>
       </Box>
+      {unreadMessageCount > 0 ?
+        <Box className={classes.bubble}>
+          <Typography className={classes.text}>{unreadMessageCount}</Typography>
+        </Box> 
+      : null}
     </Box>
   );
 };

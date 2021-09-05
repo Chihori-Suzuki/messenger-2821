@@ -1,7 +1,12 @@
 const sortFunc = (a, b) => {
-  if (a['messages'][a['messages'].length - 1]["createdAt"] > b['messages'][b['messages'].length - 1]["createdAt"]) {
+  const first = a['messages'][a['messages'].length - 1]
+  const second = b['messages'][b['messages'].length - 1]
+  if (!first || !second) {
+    return 0
+  }
+  if (first["createdAt"] > second["createdAt"]) {
     return -1;
-  } else if (a['messages'][a['messages'].length - 1]["createdAt"] < b['messages'][b['messages'].length - 1]["createdAt"]) {
+  } else if (first["createdAt"] < second["createdAt"]) {
     return 1;
   } else {
     return 0;
@@ -81,6 +86,8 @@ export const addSearchedUsersToStore = (state, users) => {
 };
 
 export const addNewConvoToStore = (state, recipientId, message) => {
+  console.log("state", state);
+
   const newState = state.map((convo) => {
     if (convo.otherUser.id === recipientId) {
       const convoCopy = { ...convo };
@@ -93,7 +100,9 @@ export const addNewConvoToStore = (state, recipientId, message) => {
       return convo;
     }
   });
+
+  console.log("newState", newState);
   newState.sort(sortFunc);
-  
+
   return newState;
 };

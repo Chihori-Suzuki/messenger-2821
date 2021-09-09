@@ -5,7 +5,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import { setActiveChat } from "../../store/activeConversation";
 import { connect } from "react-redux";
 import store from "../../store/index";
-import { updateLastRead, getUnreadMessages, getLastReadAt } from '../../store/utils/thunkCreators'
+import { updateIsRead, getUnreadMessageCount } from '../../store/utils/thunkCreators'
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -29,33 +29,27 @@ const Chat = (props) => {
 
   useEffect(() => {
     const activeChat = store.getState().activeConversation
-    const senderId = store.getState().user.id
+    const userId = store.getState().user.id
 
     const fetchLastReadCount = async () => {
       if (otherUser.username === activeChat) {
         const body = {
-          id: conversation.id,
-          senderId
+          convoId: conversation.id,
+          userId
         }
-        updateLastRead(body)
+        updateIsRead(body)
         setUnreadMessageCount(0)
         return
       }
   
-      const lastReadAtParams = {
+      const unreadMessageCountparams = {
         convoId: conversation.id,
-        userId: senderId,
+        userId: userId,
       }
 
-      const lastReadAt = await getLastReadAt(lastReadAtParams);
-
-      const params = {
-        id: conversation.id,
-        lastReadAt
-      }
-
-      const unreadMessages = await getUnreadMessages(params);
-      setUnreadMessageCount(unreadMessages.length);
+      const fetchedUnreadMessageCount = await getUnreadMessageCount(unreadMessageCountparams);
+      
+      setUnreadMessageCount(fetchedUnreadMessageCount);
     }
     fetchLastReadCount();
 
@@ -63,15 +57,15 @@ const Chat = (props) => {
 
   const handleClick = async (conversation) => {
     await props.setActiveChat(conversation.otherUser.username);
-    const senderId = store.getState().user.id;
+    const userId = store.getState().user.id;
 
     const params = {
-      id: conversation.id,
-      senderId
+      convoId: conversation.id,
+      userId
     }
     if (!conversation.id) return
 
-    updateLastRead(params)
+    updateIsRead(params)
     setUnreadMessageCount(0)
   };
 

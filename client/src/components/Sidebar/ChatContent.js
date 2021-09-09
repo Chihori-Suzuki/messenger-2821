@@ -20,16 +20,16 @@ const useStyles = makeStyles((theme) => ({
     letterSpacing: -0.17,
   },
   bubble: {
-    background: "#3A8DFF",
+    background: theme.palette.primary.main,
     borderRadius: "15px",
-    margin: "8px 0"
+    margin: theme.space.margin.main
   },
   text: {
-    fontSize: 14,
+    fontSize: theme.typography.fontSize,
     fontWeight: "bold",
-    color: "#FFFFFF",
+    color: theme.palette.fontColor.main,
     letterSpacing: -0.2,
-    padding: "2px 8px"
+    padding: theme.space.padding.main,
   },
 }));
 

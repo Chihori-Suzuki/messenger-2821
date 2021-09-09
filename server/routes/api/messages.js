@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const { Conversation, Message } = require("../../db/models");
 const onlineUsers = require("../../onlineUsers");
-const { Op } = require('sequelize')
+const Sequelize = require('sequelize')
 
 // expects {recipientId, text, conversationId } in body (conversationId will be null if no conversation exists yet)
 router.post("/", async (req, res, next) => {
@@ -44,14 +44,77 @@ router.post("/", async (req, res, next) => {
   }
 });
 
-router.get("/unreadMessages", async (req, res, next) => {
-  const { id, lastReadAt } = req.query;
+router.patch("/unreadMessage", async (req, res, next) => {
+  const { convoId, userId } = req.body;
+  if (!convoId || !userId) return
   try {
-    let localLastReadAt = new Date(lastReadAt)
-    localLastReadAt.setHours(localLastReadAt.getHours() + 7);
+    const unreadMessages = await Message.findAll({
+      where: {
+        [Sequelize.Op.and]: {
+          conversationId: convoId,
+          user1IsRead: false,
+          [Sequelize.Op.not]: {
+            senderId: userId
+          }
+        }
+      },
+      attributes: ["id", "user1IsRead", "user2IsRead"],
+      include: [{
+        model: Conversation,
+        where: {
+          id: convoId
+        },
+        attributes: ["user1Id", "user2Id"],
+      }],
+    });
+    
+    for (let i = 0; i < unreadMessages.length; i++) {
+      if (unreadMessages[i].conversation.user1Id == parseInt(userId) && !unreadMessages[i].user1IsRead) {
+        unreadMessages[i].user1IsRead = true
+        unreadMessages[i].save();
+      } else if (unreadMessages[i].conversation.user2Id == parseInt(userId) && !unreadMessages[i].user2IsRead) {
+        unreadMessages[i].user2IsRead = true
+        unreadMessages[i].save();
+      }
+    }
+  } catch (error) {
+    next(error);
+  }
+});
 
-    const unreadMessages = await Message.findAll({ where: { conversationId: id, createdAt: { [Op.gt]: localLastReadAt } } });
-    res.json(unreadMessages)
+router.get("/unreadMessage", async (req, res, next) => {
+  const { convoId, userId } = req.query;
+  if (!convoId || !userId) return
+  try {
+    const unreadMessages = await Message.findAll({
+      where: {
+        [Sequelize.Op.and]: {
+          conversationId: convoId,
+          user1IsRead: false,
+          [Sequelize.Op.not]: {
+            senderId: userId
+          }
+        }
+      },
+      attributes: ["user1IsRead", "user2IsRead"],
+      include: [{
+        model: Conversation,
+        where: {
+          id: convoId
+        },
+        attributes: ["user1Id", "user2Id"],
+      }],
+    });
+    let unreadMessageCount = 0
+
+    for (let unreadMessage of unreadMessages) {
+      if (unreadMessage.conversation.user1Id === parseInt(userId) && !unreadMessage.user1IsRead) {
+        unreadMessageCount += 1
+      } else if (unreadMessage.conversation.user2Id === parseInt(userId) && !unreadMessage.user2IsRead) {
+        unreadMessageCount += 1
+      }
+    }
+    res.json(unreadMessageCount)
   } catch (error) {
     next(error);
   }

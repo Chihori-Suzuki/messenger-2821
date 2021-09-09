@@ -86,7 +86,6 @@ export const addSearchedUsersToStore = (state, users) => {
 };
 
 export const addNewConvoToStore = (state, recipientId, message) => {
-  console.log("state", state);
 
   const newState = state.map((convo) => {
     if (convo.otherUser.id === recipientId) {
@@ -100,8 +99,7 @@ export const addNewConvoToStore = (state, recipientId, message) => {
       return convo;
     }
   });
-
-  console.log("newState", newState);
+  
   newState.sort(sortFunc);
 
   return newState;

@@ -1,9 +1,12 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Box } from "@material-ui/core";
 import { BadgeAvatar, ChatContent } from "../Sidebar";
 import { makeStyles } from "@material-ui/core/styles";
 import { setActiveChat } from "../../store/activeConversation";
 import { connect } from "react-redux";
+import store from "../../store/index";
+import { updateIsRead } from '../../store/utils/thunkCreators'
+import { updateUnreadMessageCount } from '../../store/conversations'
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -21,11 +24,32 @@ const useStyles = makeStyles((theme) => ({
 
 const Chat = (props) => {
   const classes = useStyles();
-  const { conversation } = props;
+  const { conversation, updateUnreadMessageCount } = props;
   const { otherUser } = conversation;
+
+  useEffect(() => {
+    const activeChat = store.getState().activeConversation
+
+    if (otherUser.username === activeChat && conversation.unreadMessageCount > 0) {
+      const body = {
+        convoId: conversation.id
+      }
+      updateIsRead(body)
+      updateUnreadMessageCount(body.convoId)
+    }
+  }, [conversation]);
 
   const handleClick = async (conversation) => {
     await props.setActiveChat(conversation.otherUser.username);
+
+    if (!conversation.id) return
+
+    const body = {
+      convoId: conversation.id
+    }
+
+    updateIsRead(body)
+    updateUnreadMessageCount(body.convoId)
   };
 
   return (
@@ -45,7 +69,10 @@ const mapDispatchToProps = (dispatch) => {
   return {
     setActiveChat: (id) => {
       dispatch(setActiveChat(id));
-    }
+    },
+    updateUnreadMessageCount: (convoId) => {
+      dispatch(updateUnreadMessageCount(convoId));
+    },
   };
 };
 

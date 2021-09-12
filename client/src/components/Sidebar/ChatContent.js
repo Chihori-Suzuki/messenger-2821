@@ -37,7 +37,7 @@ const useStyles = makeStyles((theme) => ({
 const ChatContent = (props) => {
   const classes = useStyles();
 
-  const { conversation, unreadMessageCount } = props;
+  const { conversation } = props;
   const { latestMessageText, otherUser } = conversation;
 
   return (
@@ -50,11 +50,11 @@ const ChatContent = (props) => {
           {latestMessageText}
         </Typography>
       </Box>
-      {unreadMessageCount > 0 ?
+      {conversation.unreadMessageCount > 0 &&
         <Box className={classes.bubble}>
-          <Typography className={classes.text}>{unreadMessageCount}</Typography>
+          <Typography className={classes.text}>{conversation.unreadMessageCount}</Typography>
         </Box> 
-      : null}
+      }
     </Box>
   );
 };

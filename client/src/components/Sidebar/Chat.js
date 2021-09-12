@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { Box } from "@material-ui/core";
 import { BadgeAvatar, ChatContent } from "../Sidebar";
 import { makeStyles } from "@material-ui/core/styles";
 import { setActiveChat } from "../../store/activeConversation";
 import { connect } from "react-redux";
 import store from "../../store/index";
-import { updateIsRead, getUnreadMessageCount } from '../../store/utils/thunkCreators'
+import { updateIsRead } from '../../store/utils/thunkCreators'
+import { updateUnreadMessageCount } from '../../store/conversations'
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -23,50 +24,32 @@ const useStyles = makeStyles((theme) => ({
 
 const Chat = (props) => {
   const classes = useStyles();
-  const { conversation } = props;
+  const { conversation, updateUnreadMessageCount } = props;
   const { otherUser } = conversation;
-  const [ unreadMessageCount, setUnreadMessageCount ] = useState(0)
 
   useEffect(() => {
     const activeChat = store.getState().activeConversation
-    const userId = store.getState().user.id
 
-    const fetchLastReadCount = async () => {
-      if (otherUser.username === activeChat) {
-        const body = {
-          convoId: conversation.id,
-          userId
-        }
-        updateIsRead(body)
-        setUnreadMessageCount(0)
-        return
+    if (otherUser.username === activeChat && conversation.unreadMessageCount > 0) {
+      const body = {
+        convoId: conversation.id
       }
-  
-      const unreadMessageCountparams = {
-        convoId: conversation.id,
-        userId: userId,
-      }
-
-      const fetchedUnreadMessageCount = await getUnreadMessageCount(unreadMessageCountparams);
-      
-      setUnreadMessageCount(fetchedUnreadMessageCount);
+      updateIsRead(body)
+      updateUnreadMessageCount(body.convoId)
     }
-    fetchLastReadCount();
-
   }, [conversation]);
 
   const handleClick = async (conversation) => {
     await props.setActiveChat(conversation.otherUser.username);
-    const userId = store.getState().user.id;
 
-    const params = {
-      convoId: conversation.id,
-      userId
-    }
     if (!conversation.id) return
 
-    updateIsRead(params)
-    setUnreadMessageCount(0)
+    const body = {
+      convoId: conversation.id
+    }
+
+    updateIsRead(body)
+    updateUnreadMessageCount(body.convoId)
   };
 
   return (
@@ -77,7 +60,7 @@ const Chat = (props) => {
         online={otherUser.online}
         sidebar={true}
       />
-      <ChatContent conversation={conversation} unreadMessageCount={unreadMessageCount} />
+      <ChatContent conversation={conversation} />
     </Box>
   );
 };
@@ -86,7 +69,10 @@ const mapDispatchToProps = (dispatch) => {
   return {
     setActiveChat: (id) => {
       dispatch(setActiveChat(id));
-    }
+    },
+    updateUnreadMessageCount: (convoId) => {
+      dispatch(updateUnreadMessageCount(convoId));
+    },
   };
 };
 

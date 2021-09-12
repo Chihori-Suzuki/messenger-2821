@@ -5,6 +5,7 @@ import {
   addConversation,
   setNewMessage,
   setSearchedUsers,
+  updateUnreadMessageCount
 } from "../conversations";
 import { gotUser, setFetchingStatus } from "../user";
 
@@ -123,7 +124,10 @@ export const updateIsRead = async (body) => {
   return data;
 };
 
-export const getUnreadMessageCount = async (params) => {
-  const { data } = await axios.get("/api/messages/unreadMessage", { params: params });
-  return data;
+export const initUnreadMessageCount = (convoId) => async (dispatch) => {
+  try {
+    dispatch(updateUnreadMessageCount(convoId));
+  } catch (error) {
+    console.error(error);
+  }
 };
